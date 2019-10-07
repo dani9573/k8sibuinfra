@@ -142,10 +142,10 @@ spec:
 
   ports:
     - name: peer0-hbo-myapp-nodeport-8051
-      port: 8051
-      nodePort: 8051
+      port: 30851
+      nodePort: 30851
     - name: peer0-hbo-myapp-cc-nodeport-8052
-      port: 8052
-      nodePort: 8052
+      port: 30852
+      nodePort: 30852
 
   type: NodePort
