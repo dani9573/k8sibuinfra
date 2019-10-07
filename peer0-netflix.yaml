@@ -52,8 +52,8 @@ spec:
             value: unix:///host/var/run/docker.sock
           - name: ORDERER_ADDRESS
             value: orderer-myapp:7050
-          - name: ORG_CONTEXT
-            value: netflix
+          - name: CORE_PEER_MSPCONFIGPATH
+            value: /etc/hyperledger/fabric/users/Admin@netflix-myapp/msp
             
         workingDir: /etc/hyperledger/fabric
         
