@@ -1,8 +1,5 @@
 # Create kubernetes NFS volume on Google Container Engine (GKE)
 
-## TL;DR
-Have a look directly on [./config-yml-files/00-run.sh](./config-yml-files/00-run.sh)
-
 ## 0. Version of kubernetes on GKE cluster
 
     # Make sure to have kubernetes with that version else errors related to DNS will occur
