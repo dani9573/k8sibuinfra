@@ -53,7 +53,7 @@ spec:
           - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
             value: '[/var/hyperledger/orderer/tls/ca.crt]'
                 
-        workingDir: /opt/gopath/src/github.com/hyperledger/fabric
+        workingDir: /var/hyperledger/orderer
         
         volumeMounts:
         # This is pointing to the PVC
