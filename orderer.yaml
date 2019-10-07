@@ -126,7 +126,7 @@ spec:
 
   ports:
     - name: orderer-myapp-nodeport
-      port: 7050
-      nodePort: 7050
+      port: 30750
+      nodePort: 30750
 
   type: NodePort
