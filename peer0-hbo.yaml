@@ -1,0 +1,151 @@
+# YAML for launching peer0 hbo
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: peer0-hbo-myapp
+  labels:
+    run: peer0-hbo-myapp
+spec:
+  serviceName: peer0-hbo-myapp
+  replicas: 1
+  selector:
+    matchLabels:
+      run: peer0-hbo-myapp
+  template:
+    metadata:
+      labels:
+        run: peer0-hbo-myapp
+    spec:
+      containers:
+      - name: peer0-hbo-myapp
+        # Image used
+        image: hyperledger/fabric-peer
+        env:
+          - name: FABRIC_CFG_PATH
+            value: /etc/hyperledger/fabric
+          - name: FABRIC_LOGGING_SPEC
+            value: DEBUG          
+          - name: CORE_LOGGING_LEVEL
+            value: DEBUG
+          - name: CORE_PEER_ID
+            value: peer0-hbo-myapp
+          - name: CORE_PEER_ADDRESS
+            value: peer0-hbo-myapp:8051
+            #value: 0.0.0.0:8051 
+          - name: CORE_PEER_LISTENADDRESS
+            value: 0.0.0.0:8051
+          - name: CORE_PEER_CHAINCODEADDRESS
+            value: peer0-hbo-myapp:8052
+          - name: CORE_PEER_CHAINCODELISTENADDRESS
+            value: 0.0.0.0:8052
+          - name: CORE_PEER_LOCALMSPID
+            value: hboMSP
+          - name: CORE_PEER_TLS_ENABLED
+            value: "true"
+          - name: CORE_PEER_PROFILE_ENABLED
+            value: "true"
+          - name: CORE_PEER_TLS_CERT_FILE
+            value: /etc/hyperledger/fabric/tls/server.crt
+          - name: CORE_PEER_TLS_KEY_FILE
+            value: /etc/hyperledger/fabric/tls/server.key
+          - name: CORE_PEER_TLS_ROOTCERT_FILE
+            value: /etc/hyperledger/fabric/tls/ca.crt
+          - name: CORE_VM_ENDPOINT
+            value: unix:///host/var/run/docker.sock
+          - name: ORDERER_ADDRESS
+            value: orderer-myapp:7050
+          - name: ORG_CONTEXT
+            value: hbo
+            
+        workingDir: /etc/hyperledger/fabric
+        
+        volumeMounts:
+        - name: peer0-hbo-myapp-ledger
+          mountPath: /var/ledger
+        - name: dockersock
+          mountPath: /var/run/docker.sock
+        - name: my-pvc-nfs
+          mountPath: /etc/hyperledger/fabric/msp
+          subPath: crypto-config/peerOrganizations/hbo-myapp/peers/peer0-hbo-myapp/msp
+        - name: my-pvc-nfs
+          mountPath: /etc/hyperledger/fabric/tls
+          subPath: crypto-config/peerOrganizations/hbo-myapp/peers/peer0-hbo-myapp/tls
+        - name: my-pvc-nfs
+          mountPath: /etc/hyperledger/fabric/users
+          subPath: crypto-config/peerOrganizations/hbo-myapp/users
+        - name: my-pvc-nfs
+          mountPath: /etc/hyperledger/fabric/chaincode
+          subPath: chaincode
+        - name: my-pvc-nfs
+          mountPath: /etc/hyperledger/fabric/channel-artifacts
+          subPath: channel-artifacts
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/production
+          subPath: crypto-config/peerOrganizations/hbo-myapp/peers/peer0-hbo-myapp       
+          
+      volumes:
+      - name: dockersock
+        hostPath:
+          path: /var/run/docker.sock
+      - name: my-pvc-nfs
+        persistentVolumeClaim:
+          claimName: nfs
+          
+  volumeClaimTemplates:
+  - metadata: 
+      name: peer0-hbo-myapp-ledger
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: general
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+# Expose the port 8051 as ClusterIP
+apiVersion: v1
+kind: Service
+metadata:
+  name: peer0-hbo-myapp
+
+spec:
+  # This defines which pods are going to be represented by this Service
+  # The service becomes a network endpoint for either other services
+  # or maybe external users to connect to (eg browser)
+  selector:
+    run: peer0-hbo-myapp
+
+  ports:
+    - name: peer0-hbo-myapp
+      port: 8051
+    - name: peer0-hbo-myapp-cc
+      port: 8052
+
+  type: ClusterIP
+
+---
+# Expose the port 8051 as node port -  NEEDED if you
+# are interested in connecting to the Pods from the Host
+# machine - keep in mind you would need the IP for the node
+# port service
+apiVersion: v1
+kind: Service
+metadata:
+  name: peer0-hbo-myapp-nodeport
+
+spec:
+  # This defines which pods are going to be represented by this Service
+  # The service becomes a network endpoint for either other services
+  # or maybe external users to connect to (eg browser)
+  selector:
+    run: peer0-hbo-myapp
+
+  ports:
+    - name: peer0-hbo-myapp-nodeport-8051
+      port: 8051
+      nodePort: 8051
+    - name: peer0-hbo-myapp-cc-nodeport-8052
+      port: 8052
+      nodePort: 8052
+
+  type: NodePort

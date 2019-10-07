@@ -1,0 +1,132 @@
+# YAML for launching the orderer
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orderer-myapp
+  labels:
+    run: orderer-myapp
+spec:
+  serviceName: orderer-myapp
+  # Single instance of the Orderer Pod is needed
+  replicas: 1
+  selector:
+    matchLabels:
+      run: orderer-myapp
+  template:
+    metadata:
+      labels:
+        run: orderer-myapp
+    spec:
+      containers:
+      - name: orderer-myapp
+        # Image used
+        image: hyperledger/fabric-orderer
+
+        env:
+          - name: FABRIC_CFG_PATH
+            value: /etc/hyperledger/fabric
+          - name: FABRIC_LOGGING_SPEC
+            value: DEBUG
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/orderer.genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          # enabled TLS
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+                
+        workingDir: /opt/gopath/src/github.com/hyperledger/fabric
+        
+        volumeMounts:
+        # This is pointing to the PVC
+        - name: orderer-myapp-ledger
+          mountPath: /var/ledger
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/msp 
+          subPath: crypto-config/ordererOrganizations/myapp/orderers/orderer-myapp/msp
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/tls
+          subPath: crypto-config/ordererOrganizations/myapp/orderers/orderer-myapp/tls
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/orderer.genesis.block
+          subPath: channel-artifacts/genesis.block 
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/production/orderer
+          subPath: crypto-config/ordererOrganizations/myapp/orderers/orderer-myapp 
+
+      volumes:
+      - name: my-pvc-nfs
+        persistentVolumeClaim:
+          claimName: nfs
+
+  volumeClaimTemplates:
+  - metadata: 
+      name: orderer-myapp-ledger
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: general
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+# Expose the port 7050 as ClusterIP
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderer-myapp
+
+spec:
+  # This defines which pods are going to be represented by this Service
+  # The service becomes a network endpoint for either other services
+  # or maybe external users to connect to (eg browser)
+  selector:
+    run: orderer-myapp
+
+  ports:
+    - name: orderer-myapp
+      port: 7050
+
+  type: ClusterIP
+
+---
+# Expose the port 30750 as node port - NEEDED if you
+# are interested in connecting to the Pods from the Host
+# machine - keep in mind you would need the IP for the node
+# port service
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderer-myapp-nodeport
+
+spec:
+  # This defines which pods are going to be represented by this Service
+  # The service becomes a network endpoint for either other services
+  # or maybe external users to connect to (eg browser)
+  selector:
+    run: orderer-myapp
+
+  ports:
+    - name: orderer-myapp-nodeport
+      port: 7050
+      nodePort: 7050
+
+  type: NodePort
