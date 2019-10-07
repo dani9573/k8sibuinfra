@@ -81,7 +81,10 @@ spec:
           subPath: channel-artifacts
         - name: my-pvc-nfs
           mountPath: /var/hyperledger/production
-          subPath: crypto-config/peerOrganizations/hbo-myapp/peers/peer0-hbo-myapp       
+          subPath: crypto-config/peerOrganizations/hbo-myapp/peers/peer0-hbo-myapp
+        - name: my-pvc-nfs
+          mountPath: /etc/hyperledger/fabric/crypto
+          subPath: crypto-config 
           
       volumes:
       - name: dockersock
