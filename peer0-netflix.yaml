@@ -25,8 +25,6 @@ spec:
             value: /etc/hyperledger/fabric
           - name: FABRIC_LOGGING_SPEC
             value: DEBUG          
-          - name: CORE_LOGGING_LEVEL
-            value: DEBUG
           - name: CORE_PEER_ID
             value: peer0-netflix-myapp
           - name: CORE_PEER_ADDRESS
