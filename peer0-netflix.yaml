@@ -80,6 +80,9 @@ spec:
         - name: my-pvc-nfs
           mountPath: /var/hyperledger/production
           subPath: crypto-config/peerOrganizations/netflix-myapp/peers/peer0-netflix-myapp      
+        - name: my-pvc-nfs
+          mountPath: /etc/hyperledger/fabric/crypto
+          subPath: crypto-config 
           
       volumes:
       - name: dockersock
