@@ -2,23 +2,22 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: orderer-myapp
+  name: orderer
   labels:
-    run: orderer-myapp
+    run: orderer
 spec:
-  serviceName: orderer-myapp
-  # Single instance of the Orderer Pod is needed
+  serviceName: orderer
   replicas: 1
   selector:
     matchLabels:
-      run: orderer-myapp
+      run: orderer
   template:
     metadata:
       labels:
-        run: orderer-myapp
+        run: orderer
     spec:
       containers:
-      - name: orderer-myapp
+      - name: orderer
         # Image used
         image: hyperledger/fabric-orderer
 
@@ -53,24 +52,23 @@ spec:
           - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
             value: '[/var/hyperledger/orderer/tls/ca.crt]'
                 
-        workingDir: /var/hyperledger/orderer
+        workingDir: /opt/gopath/src/github.com/hyperledger/fabric
         
         volumeMounts:
-        # This is pointing to the PVC
-        - name: orderer-myapp-ledger
+        - name: orderer-ledger
           mountPath: /var/ledger
         - name: my-pvc-nfs
           mountPath: /var/hyperledger/orderer/msp 
-          subPath: crypto-config/ordererOrganizations/myapp/orderers/orderer-myapp/msp
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer.prototipo.com/msp
         - name: my-pvc-nfs
           mountPath: /var/hyperledger/orderer/tls
-          subPath: crypto-config/ordererOrganizations/myapp/orderers/orderer-myapp/tls
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer.prototipo.com/tls
         - name: my-pvc-nfs
           mountPath: /var/hyperledger/orderer/orderer.genesis.block
           subPath: channel-artifacts/genesis.block 
         - name: my-pvc-nfs
           mountPath: /var/hyperledger/production/orderer
-          subPath: crypto-config/ordererOrganizations/myapp/orderers/orderer-myapp 
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer.prototipo.com
 
       volumes:
       - name: my-pvc-nfs
@@ -79,7 +77,7 @@ spec:
 
   volumeClaimTemplates:
   - metadata: 
-      name: orderer-myapp-ledger
+      name: orderer-ledger
     spec:
       accessModes: [ "ReadWriteOnce" ]
       storageClassName: general
@@ -92,17 +90,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: orderer-myapp
+  name: orderer-prototipo
 
 spec:
-  # This defines which pods are going to be represented by this Service
-  # The service becomes a network endpoint for either other services
-  # or maybe external users to connect to (eg browser)
   selector:
-    run: orderer-myapp
+    run: orderer
 
   ports:
-    - name: orderer-myapp
+    - name: orderer
       port: 7050
 
   type: ClusterIP
@@ -115,17 +110,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: orderer-myapp-nodeport
+  name: orderer-nodeport
 
 spec:
-  # This defines which pods are going to be represented by this Service
-  # The service becomes a network endpoint for either other services
-  # or maybe external users to connect to (eg browser)
   selector:
-    run: orderer-myapp
+    run: orderer
 
   ports:
-    - name: orderer-myapp-nodeport
+    - name: orderer-nodeport
       port: 30750
       nodePort: 30750
 

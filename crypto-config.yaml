@@ -13,7 +13,7 @@ OrdererOrgs:
     # ---------------------------------------------------------------------------
     Specs:
       - Hostname: orderer
-        CommonName: orderer-myapp
+      - CommonName: orderer-myapp
 
 # ---------------------------------------------------------------------------
 # "PeerOrgs" - Definition of organizations managing peer nodes
@@ -43,7 +43,7 @@ PeerOrgs:
     # ---------------------------------------------------------------------------
     Specs:
       - Hostname: peer0
-        CommonName: peer0-netflix-myapp # overrides Hostname-based FQDN set above
+      - CommonName: peer0-netflix-myapp # overrides Hostname-based FQDN set above
     # ---------------------------------------------------------------------------
     # "Template"
     # ---------------------------------------------------------------------------
@@ -75,7 +75,7 @@ PeerOrgs:
     EnableNodeOUs: true
     Specs:
       - Hostname: peer0
-        CommonName: peer0-hbo-myapp # overrides Hostname-based FQDN set above
+      - CommonName: peer0-hbo-myapp # overrides Hostname-based FQDN set above
     Template:
       Count: 1
     Users:

@@ -1,0 +1,111 @@
+# YAML for launching couchdb
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: couchdb-peer0-org1
+  labels:
+    run: couchdb-peer0-org1
+spec:
+  serviceName: couchdb-peer0-org1
+  replicas: 1
+  selector:
+    matchLabels:
+      run: couchdb-peer0-org1
+  template:
+    metadata:
+      labels:
+        run: couchdb-peer0-org1
+    spec:
+      containers:
+      - name: couchdb-peer0-org1
+        image: hyperledger/fabric-couchdb
+        env:
+          - name: COUCHDB_USER
+            value: "blocksaas"
+          - name: COUCHDB_PASSWORD
+            value: "blocksaas1988"
+        volumeMounts:
+        - name: couchdb-peer0-org1-pvc
+          mountPath: /opt/couchdb/data
+          
+  volumeClaimTemplates:
+  - metadata: 
+      name: couchdb-peer0-org1-pvc
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: general
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: couchdb-peer1-org1
+
+spec:
+  selector:
+    run: couchdb-peer1-org1
+
+  ports:
+    - name: couchdb-peer1-org1
+      port: 5984
+
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: couchdb-peer1-org1
+  labels:
+    run: couchdb-peer1-org1
+spec:
+  serviceName: couchdb-peer1-org1
+  replicas: 1
+  selector:
+    matchLabels:
+      run: couchdb-peer1-org1
+  template:
+    metadata:
+      labels:
+        run: couchdb-peer1-org1
+    spec:
+      containers:
+      - name: couchdb-peer1-org1
+        image: hyperledger/fabric-couchdb
+        env:
+          - name: COUCHDB_USER
+            value: "blocksaas"
+          - name: COUCHDB_PASSWORD
+            value: "blocksaas1988"
+        volumeMounts:
+        - name: couchdb-peer1-org1-pvc
+          mountPath: /opt/couchdb/data
+          
+  volumeClaimTemplates:
+  - metadata: 
+      name: couchdb-peer1-org1-pvc
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: general
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: couchdb-peer1-org1
+
+spec:
+  selector:
+    run: couchdb-peer1-org1
+
+  ports:
+    - name: couchdb-peer1-org1
+      port: 5984
+
+  type: ClusterIP
