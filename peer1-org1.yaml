@@ -1,23 +1,23 @@
-# YAML for launching peer0 hbo
+# YAML for launching peer1 Org1
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: peer0-hbo-myapp
+  name: org1peer1
   labels:
-    run: peer0-hbo-myapp
+    run: org1peer1
 spec:
-  serviceName: peer0-hbo-myapp
+  serviceName: org1peer1
   replicas: 1
   selector:
     matchLabels:
-      run: peer0-hbo-myapp
+      run: org1peer1
   template:
     metadata:
       labels:
-        run: peer0-hbo-myapp
+        run: org1peer1
     spec:
       containers:
-      - name: peer0-hbo-myapp
+      - name: org1peer1
         # Image used
         image: hyperledger/fabric-peer
         env:
@@ -26,17 +26,17 @@ spec:
           - name: FABRIC_LOGGING_SPEC
             value: DEBUG          
           - name: CORE_PEER_ID
-            value: peer0-hbo-myapp
+            value: peer1.org1.prototipo.com
           - name: CORE_PEER_ADDRESS
-            value: peer0-hbo-myapp:8051
+            value: peer1-org1-prototipo:8051
           - name: CORE_PEER_LISTENADDRESS
             value: 0.0.0.0:8051
           - name: CORE_PEER_CHAINCODEADDRESS
-            value: peer0-hbo-myapp:8052
+            value: peer1-org1-prototipo:8052
           - name: CORE_PEER_CHAINCODELISTENADDRESS
             value: 0.0.0.0:8052
           - name: CORE_PEER_LOCALMSPID
-            value: hboMSP
+            value: Org1MSP
           - name: CORE_PEER_TLS_ENABLED
             value: "true"
           - name: CORE_PEER_PROFILE_ENABLED
@@ -47,42 +47,44 @@ spec:
             value: /etc/hyperledger/fabric/tls/server.key
           - name: CORE_PEER_TLS_ROOTCERT_FILE
             value: /etc/hyperledger/fabric/tls/ca.crt
-          - name: CORE_VM_ENDPOINT
-            value: unix:///var/run/docker.sock
-          - name: ORDERER_ADDRESS
-            value: orderer-myapp:7050
           - name: CORE_PEER_MSPCONFIGPATH
-            value: /etc/hyperledger/fabric/users/Admin@hbo-myapp/msp
-       
-        workingDir: /etc/hyperledger/fabric
+            value: /etc/hyperledger/fabric/users/Admin@org1.prototipo.com/msp
+          - name: CORE_LEDGER_STATE_STATEDATABASE
+            value: "CouchDB"
+          - name: CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS
+            value: couchdb-peer1-org1:5984
+          - name: CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME
+            value: "blocksaas"
+          - name: CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+            value: "blocksaas1988"
+            
+        workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
         
         volumeMounts:
-        - name: peer0-hbo-myapp-ledger
-          mountPath: /var/ledger
         - name: dockersock
           mountPath: /var/run/docker.sock
         - name: my-pvc-nfs
           mountPath: /etc/hyperledger/fabric/msp
-          subPath: crypto-config/peerOrganizations/hbo-myapp/peers/peer0-hbo-myapp/msp
+          subPath: crypto-config/peerOrganizations/org1.prototipo.com/peers/peer1.org1.prototipo.com/msp
         - name: my-pvc-nfs
           mountPath: /etc/hyperledger/fabric/tls
-          subPath: crypto-config/peerOrganizations/hbo-myapp/peers/peer0-hbo-myapp/tls
+          subPath: crypto-config/peerOrganizations/org1.prototipo.com/peers/peer1.org1.prototipo.com/tls
         - name: my-pvc-nfs
           mountPath: /etc/hyperledger/fabric/users
-          subPath: crypto-config/peerOrganizations/hbo-myapp/users
+          subPath: crypto-config/peerOrganizations/org1.prototipo.com/users
+        #- name: my-pvc-nfs
+        #  mountPath: /var/hyperledger/production
+        #  subPath: crypto-config/peerOrganizations/org1.prototipo.com/peers/peer1.org1.prototipo.com
         - name: my-pvc-nfs
           mountPath: /etc/hyperledger/fabric/chaincode
           subPath: chaincode
         - name: my-pvc-nfs
           mountPath: /etc/hyperledger/fabric/channel-artifacts
-          subPath: channel-artifacts
-        - name: my-pvc-nfs
-          mountPath: /var/hyperledger/production
-          subPath: crypto-config/peerOrganizations/hbo-myapp/peers/peer0-hbo-myapp
+          subPath: channel-artifacts     
         - name: my-pvc-nfs
           mountPath: /etc/hyperledger/fabric/crypto
           subPath: crypto-config 
-          
+
       volumes:
       - name: dockersock
         hostPath:
@@ -91,34 +93,21 @@ spec:
         persistentVolumeClaim:
           claimName: nfs
           
-  volumeClaimTemplates:
-  - metadata: 
-      name: peer0-hbo-myapp-ledger
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: general
-      resources:
-        requests:
-          storage: 1Gi
-
 ---
 # Expose the port 8051 as ClusterIP
 apiVersion: v1
 kind: Service
 metadata:
-  name: peer0-hbo-myapp
+  name: peer1-org1-prototipo
 
 spec:
-  # This defines which pods are going to be represented by this Service
-  # The service becomes a network endpoint for either other services
-  # or maybe external users to connect to (eg browser)
   selector:
-    run: peer0-hbo-myapp
+    run: org1peer1
 
   ports:
-    - name: peer0-hbo-myapp
+    - name: org1peer1
       port: 8051
-    - name: peer0-hbo-myapp-cc
+    - name: org1peer1-cc
       port: 8052
 
   type: ClusterIP
@@ -131,20 +120,17 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: peer0-hbo-myapp-nodeport
+  name: peer1-org1-prototipo-nodeport
 
 spec:
-  # This defines which pods are going to be represented by this Service
-  # The service becomes a network endpoint for either other services
-  # or maybe external users to connect to (eg browser)
   selector:
-    run: peer0-hbo-myapp
+    run: org1peer1
 
   ports:
-    - name: peer0-hbo-myapp-nodeport-8051
+    - name: org1peer1-nodeport
       port: 30851
       nodePort: 30851
-    - name: peer0-hbo-myapp-cc-nodeport-8052
+    - name: org1peer1-cc-nodeport
       port: 30852
       nodePort: 30852
 

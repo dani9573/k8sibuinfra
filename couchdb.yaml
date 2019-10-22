@@ -42,14 +42,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: couchdb-peer1-org1
+  name: couchdb-peer0-org1
 
 spec:
   selector:
-    run: couchdb-peer1-org1
+    run: couchdb-peer0-org1
 
   ports:
-    - name: couchdb-peer1-org1
+    - name: couchdb-peer0-org1
       port: 5984
 
   type: ClusterIP

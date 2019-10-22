@@ -1,0 +1,459 @@
+# YAML for launching the orderer
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orderer
+  labels:
+    run: orderer
+spec:
+  serviceName: orderer
+  replicas: 1
+  selector:
+    matchLabels:
+      run: orderer
+  template:
+    metadata:
+      labels:
+        run: orderer
+    spec:
+      containers:
+      - name: orderer
+        # Image used
+        image: hyperledger/fabric-orderer
+
+        env:
+          - name: FABRIC_CFG_PATH
+            value: /etc/hyperledger/fabric
+          - name: FABRIC_LOGGING_SPEC
+            value: DEBUG
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/orderer.genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          # enabled TLS
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+                
+        workingDir: /opt/gopath/src/github.com/hyperledger/fabric
+        
+        volumeMounts:
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/msp 
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer.prototipo.com/msp
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/tls
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer.prototipo.com/tls
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/orderer.genesis.block
+          subPath: channel-artifacts/genesis.block 
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/production/orderer
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer.prototipo.com
+
+      volumes:
+      - name: my-pvc-nfs
+        persistentVolumeClaim:
+          claimName: nfs
+
+---
+# Expose the port 7050 as ClusterIP
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderer-prototipo
+
+spec:
+  selector:
+    run: orderer
+
+  ports:
+    - name: orderer
+      port: 7050
+
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orderer2
+  labels:
+    run: orderer2
+spec:
+  serviceName: orderer2
+  replicas: 1
+  selector:
+    matchLabels:
+      run: orderer2
+  template:
+    metadata:
+      labels:
+        run: orderer2
+    spec:
+      containers:
+      - name: orderer2
+        # Image used
+        image: hyperledger/fabric-orderer
+
+        env:
+          - name: FABRIC_CFG_PATH
+            value: /etc/hyperledger/fabric
+          - name: FABRIC_LOGGING_SPEC
+            value: DEBUG
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/orderer.genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          # enabled TLS
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+                
+        workingDir: /opt/gopath/src/github.com/hyperledger/fabric
+        
+        volumeMounts:
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/msp 
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer2.prototipo.com/msp
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/tls
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer2.prototipo.com/tls
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/orderer.genesis.block
+          subPath: channel-artifacts/genesis.block 
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/production/orderer
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer2.prototipo.com
+
+      volumes:
+      - name: my-pvc-nfs
+        persistentVolumeClaim:
+          claimName: nfs
+
+---
+# Expose the port 7050 as ClusterIP
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderer2-prototipo
+
+spec:
+  selector:
+    run: orderer2
+
+  ports:
+    - name: orderer2
+      port: 7050
+
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orderer3
+  labels:
+    run: orderer3
+spec:
+  serviceName: orderer3
+  replicas: 1
+  selector:
+    matchLabels:
+      run: orderer3
+  template:
+    metadata:
+      labels:
+        run: orderer3
+    spec:
+      containers:
+      - name: orderer3
+        # Image used
+        image: hyperledger/fabric-orderer
+
+        env:
+          - name: FABRIC_CFG_PATH
+            value: /etc/hyperledger/fabric
+          - name: FABRIC_LOGGING_SPEC
+            value: DEBUG
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/orderer.genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          # enabled TLS
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+                
+        workingDir: /opt/gopath/src/github.com/hyperledger/fabric
+        
+        volumeMounts:
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/msp 
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer3.prototipo.com/msp
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/tls
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer3.prototipo.com/tls
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/orderer.genesis.block
+          subPath: channel-artifacts/genesis.block 
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/production/orderer
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer3.prototipo.com
+
+      volumes:
+      - name: my-pvc-nfs
+        persistentVolumeClaim:
+          claimName: nfs
+
+---
+# Expose the port 7050 as ClusterIP
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderer3-prototipo
+
+spec:
+  selector:
+    run: orderer3
+
+  ports:
+    - name: orderer3
+      port: 7050
+
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orderer4
+  labels:
+    run: orderer4
+spec:
+  serviceName: orderer4
+  replicas: 1
+  selector:
+    matchLabels:
+      run: orderer4
+  template:
+    metadata:
+      labels:
+        run: orderer4
+    spec:
+      containers:
+      - name: orderer4
+        # Image used
+        image: hyperledger/fabric-orderer
+
+        env:
+          - name: FABRIC_CFG_PATH
+            value: /etc/hyperledger/fabric
+          - name: FABRIC_LOGGING_SPEC
+            value: DEBUG
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/orderer.genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          # enabled TLS
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+                
+        workingDir: /opt/gopath/src/github.com/hyperledger/fabric
+        
+        volumeMounts:
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/msp 
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer4.prototipo.com/msp
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/tls
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer4.prototipo.com/tls
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/orderer.genesis.block
+          subPath: channel-artifacts/genesis.block 
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/production/orderer
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer4.prototipo.com
+
+      volumes:
+      - name: my-pvc-nfs
+        persistentVolumeClaim:
+          claimName: nfs
+
+---
+# Expose the port 7050 as ClusterIP
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderer4-prototipo
+
+spec:
+  selector:
+    run: orderer4
+
+  ports:
+    - name: orderer4
+      port: 7050
+
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orderer5
+  labels:
+    run: orderer5
+spec:
+  serviceName: orderer5
+  replicas: 1
+  selector:
+    matchLabels:
+      run: orderer5
+  template:
+    metadata:
+      labels:
+        run: orderer5
+    spec:
+      containers:
+      - name: orderer5
+        # Image used
+        image: hyperledger/fabric-orderer
+
+        env:
+          - name: FABRIC_CFG_PATH
+            value: /etc/hyperledger/fabric
+          - name: FABRIC_LOGGING_SPEC
+            value: DEBUG
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/orderer.genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          # enabled TLS
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+                
+        workingDir: /opt/gopath/src/github.com/hyperledger/fabric
+        
+        volumeMounts:
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/msp 
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer5.prototipo.com/msp
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/tls
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer5.prototipo.com/tls
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/orderer/orderer.genesis.block
+          subPath: channel-artifacts/genesis.block 
+        - name: my-pvc-nfs
+          mountPath: /var/hyperledger/production/orderer
+          subPath: crypto-config/ordererOrganizations/prototipo.com/orderers/orderer5.prototipo.com
+
+      volumes:
+      - name: my-pvc-nfs
+        persistentVolumeClaim:
+          claimName: nfs
+
+---
+# Expose the port 7050 as ClusterIP
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderer5-prototipo
+
+spec:
+  selector:
+    run: orderer5
+
+  ports:
+    - name: orderer5
+      port: 7050
+
+  type: ClusterIP

@@ -1,4 +1,4 @@
-# YAML for launching peer0 netflix
+# YAML for launching peer0 Org1
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -59,6 +59,10 @@ spec:
             value: "blocksaas1988"
             
         workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+
+        #ports:
+         #- containerPort: 7051
+         #- containerPort: 7052
         
         volumeMounts:
         - name: dockersock
@@ -72,9 +76,9 @@ spec:
         - name: my-pvc-nfs
           mountPath: /etc/hyperledger/fabric/users
           subPath: crypto-config/peerOrganizations/org1.prototipo.com/users
-        - name: my-pvc-nfs
-          mountPath: /var/hyperledger/production
-          subPath: crypto-config/peerOrganizations/org1.prototipo.com/peers/peer0.org1.prototipo.com
+        #- name: my-pvc-nfs
+        #  mountPath: /var/hyperledger/production
+        #  subPath: crypto-config/peerOrganizations/org1.prototipo.com/peers/peer0.org1.prototipo.com
         - name: my-pvc-nfs
           mountPath: /etc/hyperledger/fabric/chaincode
           subPath: chaincode
